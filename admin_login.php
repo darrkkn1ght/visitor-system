@@ -1,21 +1,42 @@
 <?php
 session_start();
-
-$admin_user = "admin";
-$admin_pass = "password123"; // You can change this later
+include 'db.php'; // connect to database
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = trim($_POST['username']);
     $password = trim($_POST['password']);
 
-    if ($username === $admin_user && $password === $admin_pass) {
-        $_SESSION['admin_logged_in'] = true;
-        header('Location: admin_dashboard.php');
-        exit;
-    } else {
+    // Fetch user from users table
+    $stmt = $conn->prepare("SELECT id, username, password, role, destination_id FROM users WHERE username = ?");
+    $stmt->bind_param("s", $username);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    if ($result && $result->num_rows === 1) {
+        $user = $result->fetch_assoc();
+
+        // ✅ Verify password (use password_verify when passwords are hashed)
+        if ($password === $user['password']) {
+            // Save session variables
+            $_SESSION['admin_logged_in'] = true;
+            $_SESSION['user_id'] = $user['id'];
+            $_SESSION['username'] = $user['username'];
+            $_SESSION['role'] = $user['role'];
+            $_SESSION['destination_id'] = $user['destination_id'];
+
+            // Redirect to dashboard
+            header("Location: admin_dashboard.php");
+            exit;
+        }
+    }
+    else {
         $error = "Invalid credentials";
     }
-}
+    
+    $stmt->close();
+    $conn->close();
+  }
+
 ?>
 <!DOCTYPE html>
 <html>  
@@ -25,7 +46,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <style>
 
     body {
-        background-image: url('background.jpg');
+          background: rgba(255, 255, 255, 0.9);
         background-size: cover;
         background-position: center;
         background-repeat: no-repeat;
@@ -95,7 +116,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       <button type="submit">Login</button>
     </form>
   </div>
-   <div style="position: absolute; top: 10px; left: 10px;">
+   <div style="position: absolute; top: 10px; center: 10px;">
     <img src="ui_logo-removebg-preview.png" alt="Logo" style="height: 100px;">
   </div>
 </body>

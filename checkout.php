@@ -1,5 +1,6 @@
 <?php
-include 'db.php'; // include your DB connection file
+include 'db.php';
+session_start();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $id = $_POST['visitor_id'] ?? null;
@@ -7,17 +8,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($id) {
         $timeOut = date('Y-m-d H:i:s');
 
-        // Update time_out in the database
+        // 1. Get visitor's keycard_id
+        $stmt = $conn->prepare("SELECT keycard_id FROM visitors WHERE id = ?");
+        $stmt->bind_param("i", $id);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $visitor = $result->fetch_assoc();
+        $stmt->close();
+
+        if ($visitor && $visitor['keycard_id']) {
+            $keycardId = $visitor['keycard_id'];
+
+            // 2. Free up the keycard
+            $stmtCard = $conn->prepare("UPDATE keycards SET is_assigned = 0 WHERE id = ?");
+            $stmtCard->bind_param("i", $keycardId);
+            $stmtCard->execute();
+            $stmtCard->close();
+        }
+
+        // 3. Update time_out in visitors table
         $stmt = $conn->prepare("UPDATE visitors SET time_out = ? WHERE id = ?");
         $stmt->bind_param("si", $timeOut, $id);
         $stmt->execute();
+        $stmt->close();
 
-        // Fetch details for backup
+        // 4. Backup details
         $stmt = $conn->prepare("SELECT fullname, faculty_organization, purpose, time_in FROM visitors WHERE id = ?");
         $stmt->bind_param("i", $id);
         $stmt->execute();
         $result = $stmt->get_result();
         $row = $result->fetch_assoc();
+        $stmt->close();
 
         if ($row) {
             $backupRow = [
@@ -42,11 +63,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             fclose($handle);
         }
 
-        $stmt->close();
         $conn->close();
     }
 }
 
-header('Location: index.php');
+header('Location: admin_dashboard.php');
 exit;
-?>

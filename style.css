@@ -3,21 +3,25 @@
 body {
 font-family: 'Poppins', sans-serif;
 background: url('Picture2.png') no-repeat center center fixed;
+background-size: cover;
 display: flex; 
 justify-content: center;
  align-items: center;
  min-height: 100vh;
 margin: 0;
+  padding: 10px; /* prevents content touching edges on mobile */
+
 }
 
 
 .container {
- background: white;
-padding: 35px;
-border-radius: 10px;
+  background: white;
+  padding: 35px;
+  border-radius: 10px;
   box-shadow: 0 5px 20px rgba(0,0,0,0.15);
   width: 100%;
   max-width: 1300px;
+  box-sizing: border-box;
 }
 
 h2 {
@@ -33,12 +37,15 @@ h2 {
     display: flex;
   gap: 20px;
   margin-bottom: 20px;
+   flex-wrap: wrap; /* allows wrapping when screen is small */
     }
 
 .form-group {
       flex: 1;
   display: flex;
   flex-direction: column;
+   
+
     }
 
  label {
@@ -47,26 +54,25 @@ h2 {
   font-size: 14px;
     }
 
-textarea {
-  width: 100%;
-  min-height: 80px;   /* ensures it looks like a proper box */
-  padding: 10px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  font-size: 14px;
-  resize: vertical;   /* lets user expand vertically if needed */
-  box-sizing: border-box;
-}
-
-
+textarea,
 input[type="text"],
-input[type="tel"]  {
- padding: 12px;
+input[type="tel"],
+select {
+  width: 100%;
+  padding: 12px;
   border: 1px solid #ccc;
   border-radius: 6px;
   font-size: 14px;
   outline: none;
   transition: 0.3s;
+  box-sizing: border-box;
+  font-family: 'Poppins', sans-serif;
+  background-color: white;
+}
+
+textarea {
+  min-height: 80px;
+  resize: vertical;
 }
 
 select {
@@ -78,6 +84,7 @@ select {
   background-color: white;
   font-family: 'Poppins', sans-serif;
   transition: 0.3s;
+  
 }
 
 .btn  {
@@ -95,16 +102,20 @@ transition: background-color 0.2s ease;
 
 .btn:hover {
   opacity: 0.9;
+  cursor: pointer;
 }
 
 .visitor-type-group {
   margin-bottom: 25px;
+  cursor: pointer;
 }
 
 .visitor-type-options {
   display: flex;
   gap: 30px;
   margin-top: 6px;
+  cursor: pointer;
+  
 }
 
 .visitor-type-options label {
@@ -113,6 +124,7 @@ transition: background-color 0.2s ease;
   display: flex;
   align-items: center;
   gap: 6px;
+  cursor: pointer;
 }
 
 /* UNNECESSARY */
@@ -137,6 +149,7 @@ transition: background-color 0.2s ease;
 /* UNNECESSARY */
 .visitor-type-item input[type="radio"] {
   margin-right: 8px;
+  cursor: pointer;
 }
 
 /* START Autocomplete Styles */
@@ -212,6 +225,46 @@ transition: background-color 0.2s ease;
 
 /* Admin Dashboard Table Styling */
 /* Admin Dashboard Table */
+/* ===== Top Header (Admin Dashboard) ===== */
+.top-header {
+  width: 99%;           /* Fixes overflow issue */
+  background: #ffffff;
+  padding: 14px 32px;
+  border-bottom: 1px solid #e0e0e0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 50px;
+  z-index: 1000;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+}
+
+.top-header .logo {
+  height: 48px;
+  margin-right: 18px;
+}
+
+.top-header nav {
+  display: flex;
+  align-items: center;
+}
+
+.top-header nav a {
+  margin-left: 24px;
+  text-decoration: none;
+  color: #1a73e8;
+  font-weight: 500;
+  font-size: 15px;
+  transition: color 0.2s;
+}
+
+.top-header nav a:hover {
+  color: #1565C0;
+}
+
 .table-container {
     margin: 20px auto;
   width: 100%;
@@ -300,11 +353,139 @@ transition: background-color 0.2s ease;
   opacity: 1;
 }
 
+.fade-out {
+    opacity: 0;
+    transition: opacity 0.7s ease;
+  }
+/* Reduce width of destination dropdown */
+select[name="filter_destination"] {
+  width: 180px;      /* or any value you prefer */
+  max-width: 100%;
+}
 
+/* Reduce width of rows per page filter */
+select[name="rows_per_page"] {
+  width: 100px;      /* or any value you prefer */
+  max-width: 100%;
+}
+
+.pagination {
+  margin: 20px 0;
+  text-align: center;
+}
+
+.pagination a {
+  display: inline-block;
+  margin: 0 4px;
+  padding: 8px 12px;
+  text-decoration: none;
+  border: 1px solid #1a73e8;
+  border-radius: 4px;
+  color: #1a73e8;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.pagination a:hover {
+  background-color: #1a73e8;
+  color: #fff;
+}
+
+.pagination a.active {
+  background-color: #1a73e8;
+  color: #fff;
+}
+
+.filter-bar {
+  margin: 20px 0;
+  text-align: center;
+}
+
+.filter-bar a {
+  display: inline-block;
+  margin: 0 8px;
+  padding: 8px 16px;
+  text-decoration: none;
+  border: 1px solid #1a73e8;
+  border-radius: 4px;
+  color: #1a73e8;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.filter-bar a:hover {
+  background-color: #1a73e8;
+  color: #fff;
+}
+
+.filter-bar a.active {
+  background-color: #1a73e8;
+  color: #fff;
+}
+
+/* Check-In Mode */
+.alt-marker,
+.normal-marker {
+  font-weight: bold;
+  display: block; /* makes text alignment apply inside the td */
+}
+
+.checkout-btn {
+  background: none;
+  border: none;
+  color: red;
+  font-weight: bold;
+  cursor: pointer;
+  padding: 0;
+}
+
+.checkout-btn:hover {
+  color: darkred;
+  text-decoration: underline;
+}
+
+.small-btn.dangerr {
+  background: #e53935;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 14px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.small-btn.dangerr:hover {
+  background: #b71c1c;
+}
 
 /* Responsive for small screens */
 @media (max-width: 600px) {
   .form-row {
     flex-direction: column;
   }
+}
+
+/* Responsive for top header and container */
+@media (max-width: 700px) {
+  .top-header {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 12px 10px;
+  }
+  .top-header .logo {
+    height: 38px;
+    margin-bottom: 8px;
+  }
+  .container {
+    padding: 16px;
+    margin-top: 70px;
+  }
+
+  /* Add to your style.css or <style> section */
+.confirmation-popup {
+  transition: opacity 0.7s;
+}
+.confirmation-popup.fade-out {
+  opacity: 0;
+}
 }
