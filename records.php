@@ -38,14 +38,32 @@ $result = $stmt->get_result();
       vertical-align: middle;
     }
     .btn-checkout {
-      background-color: #dc3545;
+      background: linear-gradient(135deg, #ff416c 0%, #ff4b2b 100%);
       color: white;
       border: none;
-      padding: 6px 12px;
-      border-radius: 5px;
+      padding: 8px 16px;
+      font-size: 13px;
+      font-weight: 600;
+      border-radius: 50px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 12px rgba(255, 65, 108, 0.3);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .btn-checkout:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 15px rgba(255, 65, 108, 0.4);
+      filter: brightness(1.1);
+    }
+    .btn-checkout:active:not(:disabled) {
+      transform: translateY(0);
     }
     .btn-checkout:disabled {
-      background-color: #6c757d;
+      background: #ccc;
+      box-shadow: none;
+      cursor: not-allowed;
+      transform: none;
     }
     h2 {
       font-weight: bold;
@@ -84,7 +102,7 @@ $result = $stmt->get_result();
               <?php if (is_null($row['time_out']) || $row['time_out'] == '0000-00-00 00:00:00'): ?>
                 <button type="button" onclick="checkOutVisitor(<?= $row['id'] ?>, this)" class="btn-checkout">Check Out</button>
               <?php else: ?>
-                <span class="text-muted">Checked Out</span>
+                <button class="btn-checkout" disabled>Checked Out</button>
               <?php endif; ?>
             </td>
           </tr>
@@ -104,8 +122,9 @@ $result = $stmt->get_result();
         if (xhr.status === 200 && xhr.responseText.trim() === "success") {
           btn.textContent = "Checked Out";
           btn.disabled = true;
-          btn.classList.remove("btn-checkout");
-          btn.classList.add("btn-secondary");
+          // btn.classList.remove("btn-checkout");
+          // btn.classList.add("btn-secondary");
+
         } else {
           alert("Error checking out. Please try again.");
         }
