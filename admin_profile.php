@@ -199,7 +199,8 @@ if (empty($_SESSION['csrf_token'])) {
 <body>
     <!-- Logo -->
     <div class="logo-container">
-        <a href="admin_dashboard.php">
+        <?php require_once 'includes/logo_helper.php'; ?>
+        <a href="<?= getLogoHref() ?>" class="logo-link" aria-label="Home">
             <img src="ui_logo-removebg-preview.png" alt="UI Logo" class="logo">
         </a>
     </div>

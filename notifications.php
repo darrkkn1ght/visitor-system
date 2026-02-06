@@ -199,7 +199,7 @@ $stmt->close();
     </div>
 
     <div class="inbox-container">
-        <a href="admin_profile.php" class="back-link">← Back to Profile</a>
+        <a href="admin_dashboard.php" class="back-link">← Back to Dashboard</a>
 
         <div class="filter-tabs">
             <a href="?filter=all" class="filter-tab <?= $filter === 'all' ? 'active' : '' ?>">All</a>

@@ -213,7 +213,10 @@ $conn->close();
   <!-- Top Header -->
   <header class="app-header">
     <div class="logo-container">
-      <img src="ui_logo-removebg-preview.png" alt="UI Logo">
+      <?php require_once 'includes/logo_helper.php'; ?>
+      <a href="<?= getLogoHref() ?>" class="logo-link" aria-label="Home">
+        <img src="ui_logo-removebg-preview.png" alt="UI Logo">
+      </a>
     </div>
 
     <div class="simple-menu-container">
@@ -229,6 +232,15 @@ $conn->close();
         </div>
         <a href="admin_dashboard.php"><span class="menu-icon">📊</span> Dashboard</a>
         <a href="notifications.php"><span class="menu-icon">🔔</span> All Notifications</a>
+
+        <a href="events_calendar.php"><span class="menu-icon">📅</span> Events Calendar</a>
+
+        <?php if ($_SESSION['role'] === 'super_admin'): ?>
+          <a href="destinations.php"><span class="menu-icon">🏢</span> Destinations</a>
+        <?php endif; ?>
+
+        <a href="backup_records.php"><span class="menu-icon">⬇</span> Export Data</a>
+
         <a href="change_password.php"><span class="menu-icon">🔒</span> Change Password</a>
         <a href="logout.php" class="logout-btn">Logout</a>
       </div>

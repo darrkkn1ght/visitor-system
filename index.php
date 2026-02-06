@@ -61,7 +61,10 @@ if ($result && $result->num_rows > 0) {
 
   <!-- Logo -->
   <div class="logo-container">
-    <img src="ui_logo-removebg-preview.png" alt="University of Ibadan Logo">
+    <?php require_once 'includes/logo_helper.php'; ?>
+    <a href="<?= getLogoHref() ?>" class="logo-link" aria-label="Home">
+      <img src="ui_logo-removebg-preview.png" alt="University of Ibadan Logo">
+    </a>
   </div>
 
   <!-- Admin Menu -->

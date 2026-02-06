@@ -154,7 +154,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       add_error("Invalid card number format. Use 1 to 6 digits.");
     } else {
       $stmt = $conn->prepare("UPDATE keycards SET card_number = ?, is_assigned = ? WHERE id = ?");
-      $stmt->bind_param("iii", (int) $card_number, $is_assigned, $card_id);
+      $card_number_int = (int) $card_number;
+      $stmt->bind_param("iii", $card_number_int, $is_assigned, $card_id);
       if ($stmt->execute()) {
         add_success("Card updated successfully.");
       } else {
@@ -287,7 +288,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         for ($i = 0; $i < $to_create; $i++) {
           $card_num = $start_num + $i;
           $stmt = $conn->prepare("INSERT INTO keycards (destination_id, card_number, is_assigned) VALUES (?, ?, 0)");
-          $stmt->bind_param("iii", $destination_id, $card_num);
+          $stmt->bind_param("ii", $destination_id, $card_num);
           if ($stmt->execute()) {
             $success_count++;
           }
@@ -438,7 +439,8 @@ function get_keycard_counts($conn, $dest_id)
               </td>
               <td class="overflow-visible-cell">
                 <div class="counts-info"><strong>Total:</strong> <?= $counts['total'] ?> &nbsp;
-                  <strong>Available:</strong> <?= $counts['available'] ?></div>
+                  <strong>Available:</strong> <?= $counts['available'] ?>
+                </div>
 
                 <details>
                   <summary>View / Manage Keycards</summary>
@@ -489,7 +491,8 @@ function get_keycard_counts($conn, $dest_id)
                               <select name="new_dest_id" class="dest-select">
                                 <?php foreach ($destinations as $d): ?>
                                   <option value="<?= $d['id'] ?>" <?= $d['id'] == $dest['id'] ? 'selected' : '' ?>>
-                                    <?= htmlspecialchars($d['name']) ?></option>
+                                    <?= htmlspecialchars($d['name']) ?>
+                                  </option>
                                 <?php endforeach; ?>
                               </select>
                               <button type="submit" class="small-btn">Move</button>

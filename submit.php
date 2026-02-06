@@ -10,33 +10,27 @@ function validate_visitor_input($fullname, $faculty, $phone, $purpose, $visitor_
 {
     $errors = [];
 
-    // Fullname: 2-100 chars, letters/spaces/hyphens/apostrophes only
-    if (strlen($fullname) < 2 || strlen($fullname) > 100) {
-        $errors['fullname'] = "Full name must be 2-100 characters";
-    } elseif (!preg_match('/^[a-zA-Z\s\'-]+$/', $fullname)) {
-        $errors['fullname'] = "Full name contains invalid characters (only letters, spaces, hyphens, apostrophes allowed)";
+    // Fullname: Check not empty
+    if (strlen($fullname) < 1) {
+        $errors['fullname'] = "Full name is required";
     }
 
-    // Faculty: 5-150 chars, alphanumeric + common chars
-    if (strlen($faculty) < 5 || strlen($faculty) > 150) {
-        $errors['faculty'] = "Faculty/Organization must be 5-150 characters";
-    } elseif (!preg_match('/^[a-zA-Z0-9\s\-&.,()]+$/', $faculty)) {
-        $errors['faculty'] = "Faculty/Organization contains invalid characters";
+    // Faculty: Check not empty
+    if (strlen($faculty) < 1) {
+        $errors['faculty'] = "Faculty/Organization is required";
     }
 
-    // Phone: 7-15 digits only (allows spaces/dashes for formatting, removes them for validation)
-    $phone_digits = preg_replace('/[^0-9]/', '', $phone);
-    if (strlen($phone_digits) < 7 || strlen($phone_digits) > 15) {
-        $errors['phone'] = "Phone number must be 7-15 digits";
-    } elseif (!preg_match('/^[0-9\s\-\+\(\)]+$/', $phone)) {
-        $errors['phone'] = "Phone number contains invalid characters";
+    // Phone: Check not empty
+    if (strlen($phone) < 1) {
+        $errors['phone'] = "Phone number is required";
     }
 
-    // Purpose: 10-1000 chars, check for excessive special chars
-    if (strlen($purpose) < 10 || strlen($purpose) > 1000) {
-        $errors['purpose'] = "Purpose must be 10-1000 characters";
+    // Purpose: Check not empty
+    if (strlen($purpose) < 1) {
+        $errors['purpose'] = "Purpose is required";
     } elseif (preg_match('/<|>|javascript:|onerror=|onclick=/', $purpose)) {
-        $errors['purpose'] = "Purpose contains invalid patterns";
+        // Basic XSS check remains for security
+        $errors['purpose'] = "Purpose contains invalid characters";
     }
 
     // Visitor type: must be one of allowed values

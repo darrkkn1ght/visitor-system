@@ -43,6 +43,14 @@
     grid-template-columns: 320px 1fr;
     gap: 20px;
     margin-top: 16px;
+    min-width: 0;
+    /* Prevent grid blowout */
+}
+
+/* Prevent flex/grid children from expanding layout */
+.dashboard-sidebar,
+.dashboard-main {
+    min-width: 0;
 }
 
 /* Scoped Dashboard Wrapper */
@@ -383,7 +391,7 @@
    DASHBOARD RESPONSIVE STYLES
    ============================================================================ */
 
-@media (max-width: 1024px) {
+@media (max-width: 1200px) {
     .dashboard-grid {
         grid-template-columns: 280px 1fr;
         gap: 16px;
@@ -400,7 +408,7 @@
     }
 }
 
-@media (max-width: 900px) {
+@media (max-width: 992px) {
     .dashboard-grid {
         grid-template-columns: 1fr;
     }
@@ -491,6 +499,8 @@ html,
 body {
     width: 100%;
     height: 100%;
+    overflow-x: hidden;
+    /* Fix root overflow */
 }
 
 body {
@@ -974,16 +984,21 @@ form select:focus {
 /* Table Container */
 .table-container {
     overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
     border-radius: 10px;
     margin-bottom: 25px;
     width: 100%;
+    max-width: 100%;
     margin-left: auto;
     margin-right: auto;
+    border: 1px solid var(--ui-border);
 }
 
 /* Table Styling */
 .visitor-table {
     width: 100%;
+    min-width: 1000px;
+    /* Force horizontal scroll */
     border-collapse: collapse;
     font-size: 13px;
     margin: 0 auto;
@@ -2017,6 +2032,7 @@ p[style*="text-align: center"],
 .btn-note:hover {
     background: #e2e8f0;
 }
+
 /* Realtime Updates */
 .last-update-text {
     font-size: 11px;
