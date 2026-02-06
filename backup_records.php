@@ -88,11 +88,18 @@
 </head>
 <body>
 
-<div class="dropdown">
-  <button class="dropdown-button">☰ Menu</button>
-  <div class="dropdown-content">
-    <a href="admin_dashboard.php">Dashboard</a>
-    <a href="logout.php" style="color: red;">Logout</a>
+<!-- New Simple Menu -->
+<div class="simple-menu-container">
+  <button class="menu-toggle" id="menuToggle">☰ Menu</button>
+  <div class="menu-panel" id="menuPanel">
+    <div class="menu-header">
+      <strong>Navigation</strong>
+      <button class="menu-close" id="menuClose">×</button>
+    </div>
+    <a href="admin_dashboard.php"><span class="menu-icon">☰</span> Dashboard</a>
+    <a href="events_calendar.php"><span class="menu-icon">◷</span> Events Calendar</a>
+    <a href="backup_records.php"><span class="menu-icon">⬇</span> Export</a>
+    <a href="logout.php" class="logout-btn"><span class="menu-icon">⎋</span> Logout</a>
   </div>
 </div>
 
@@ -115,18 +122,7 @@
   </form>
 </div>
 
-<script>
-  document.querySelector('.dropdown-button').addEventListener('click', function (e) {
-    e.stopPropagation();
-    document.querySelector('.dropdown').classList.toggle('show');
-  });
-
-  document.addEventListener('click', function (event) {
-    if (!event.target.closest('.dropdown')) {
-      document.querySelector('.dropdown').classList.remove('show');
-    }
-  });
-</script>
+<script src="simple_menu.js"></script>
 
 </body>
 </html>

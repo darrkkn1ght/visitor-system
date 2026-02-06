@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin Dashboard Menu Test</title>
+    <link rel="stylesheet" href="admin_dashboard.css">
+    <style>
+        body { font-family: 'Poppins', sans-serif; padding: 20px; }
+        .test-info { background: #f0f8ff; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
+    </style>
+</head>
+<body>
+    <div class="test-info">
+        <h2>Admin Dashboard Menu Test</h2>
+        <p>Click the "☰ Menu" button in the top-right corner to test the dropdown functionality.</p>
+        <p>Check the browser console for debug messages.</p>
+    </div>
+
+    <div class="logo-container">
+        <img src="ui_logo-removebg-preview.png" alt="University of Ibadan Logo" style="height: 50px;">
+    </div>
+
+    <div class="dropdown">
+        <button class="dropdown-button">☰ Menu</button>
+        <div class="dropdown-content">
+            <a href="destinations.php">Manage Destinations</a>
+            <a href="events_calendar.php">Events Calendar</a>
+            <a href="backup_records.php">Export</a>
+            <a href="logout.php" class="logout-link">Logout</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <h2>Test Dashboard</h2>
+        <p>This is a test page to verify the admin dashboard menu functionality.</p>
+    </div>
+
+    <script src="admin_dashboard.js"></script>
+</body>
+</html>

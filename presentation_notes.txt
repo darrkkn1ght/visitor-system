@@ -1,0 +1,58 @@
+VISITOR MANAGEMENT SYSTEM - PRESENTATION GUIDE
+
+GOAL: Demonstrate a modern, secure, and responsive system for managing visitors at the University of Ibadan.
+
+--------------------------------------------------------------------------------
+1. INTRODUCTION (THE PROBLEM & SOLUTION)
+--------------------------------------------------------------------------------
+* Problem: Manual logbooks are slow, insecure, and hard to track. Visitors often get lost or messages get missed.
+* Solution: A digital Visitor Management System that streamlines check-ins, tracks visitor flow in real-time, and notifies admins instantly.
+
+--------------------------------------------------------------------------------
+2. LIVE DEMO SCRIPT (STEP-BY-STEP)
+--------------------------------------------------------------------------------
+
+SCENE 1: THE VISITOR EXPERIENCE (Demonstrate on Mobile/Tablet if possible)
+* Action: Open the Visitor Form (index.php) on your phone.
+* Highlight: "Look how the interface adapts to mobile screens perfectly."
+* Action: Enter details (Name, Phone) and select 'Gaming Hub' as destination.
+* Feature: "Notice the real-time validation—if I type an invalid phone number, it warns me immediately."
+* Action: Select "Leave a Message" (Alternate Check-in).
+* Scenario: "Let's say the Director isn't around. I can leave a digital note instead of a sticky note."
+* Submit: Click Submit. Show the success message.
+
+SCENE 2: THE ADMIN EXPERIENCE (Demonstrate on Laptop)
+* Action: Switch to the Admin Dashboard (admin_dashboard.php).
+* Feature (The "Wow" Moment): "Now, watch the top right corner."
+    (Wait 30 seconds or refresh)
+    Result: The Notification Bell shows a red badge.
+* Action: Click the Bell.
+    Read: "Message from [Visitor Name]: [Purpose]..."
+    Explain: "This happens in real-time. The Director gets this message instantly."
+
+SCENE 3: VISITOR MANAGEMENT
+* Action: Show the main table.
+* Highlight:
+    - Status Indicators (Green "Checked In" vs Orange "Message")
+    - Filtering (Show "Checked In Today" or filter by Destination)
+* Action: Click "Check Out" for a visitor. Show how the status changes and adds a timestamp.
+
+--------------------------------------------------------------------------------
+3. KEY TECHNICAL FEATURES (The "Under the Hood" Stuff)
+--------------------------------------------------------------------------------
+* Fully Responsive: Works on Phones, Tablets, Laptops, and Large Desktops.
+* Real-Time Notifications: Uses AJAX polling to fetch new messages every 30 seconds without reloading.
+* Security:
+    - CSRF Protection (Prevents fake submissions)
+    - Input Validation (Prevents attacks)
+    - Hash Algorithms (Passwords secure with Bcrypt)
+* Data Integrity: Records stored in MySQL database with relationship tracking.
+
+--------------------------------------------------------------------------------
+4. ANTICIPATED Q&A
+--------------------------------------------------------------------------------
+Q: What if the internet goes down?
+A: It runs on the local network (Intranet), so it works as long as the local Wi-Fi is active.
+
+Q: Can multiple receptionists work at once?
+A: Yes, the system supports multiple users at the same time.

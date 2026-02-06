@@ -1,0 +1,212 @@
+/* admin_login.css - Admin Login Page Styling */
+/* CSP Compliant: External stylesheet (no inline styles) */
+
+:root {
+    --ui-primary: #1E3A8A;     /* Official Indigo-Blue */
+    --ui-gold: #D4AF37;        /* Official Gold */
+    --ui-light: #EFF6FF;       /* Indigo-50 */
+    --ui-dark: #0F172A;        /* Indigo-900 */
+    --ui-accent: #1e40af;      /* Indigo-700 */
+    --ui-border: #BFDBFE;      /* Indigo-200 */
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: linear-gradient(rgba(30, 58, 138, 0.12), rgba(30, 58, 138, 0.12)), url('Picture2.png') no-repeat center center fixed;
+    background-size: cover;
+    background-attachment: fixed;
+    margin: 0;
+    padding: 20px;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Logo Container */
+.logo-container {
+    position: fixed;
+    top: 15px;
+    left: 15px;
+    z-index: 1000;
+}
+
+.logo-container img {
+    height: 60px;
+    width: auto;
+    opacity: 0.9;
+    transition: opacity 0.3s ease;
+}
+
+.logo-container img:hover {
+    opacity: 1;
+}
+
+/* Login Container */
+.login-container {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    padding: 50px;
+    border-radius: 16px;
+    max-width: 450px;
+    width: 100%;
+    box-shadow: 0 20px 60px rgba(30, 58, 138, 0.15);
+    border: 1px solid rgba(212, 175, 55, 0.2);
+    position: relative;
+}
+
+.login-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--ui-primary) 0%, var(--ui-gold) 100%);
+    border-radius: 16px 16px 0 0;
+}
+
+/* Login Title */
+.login-title {
+    text-align: center;
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 30px;
+    color: var(--ui-primary);
+    letter-spacing: -0.5px;
+}
+
+/* Form Inputs */
+input[type="text"],
+input[type="password"] {
+    width: 100%;
+    padding: 14px 16px;
+    margin: 15px 0;
+    border: 2px solid var(--ui-border);
+    border-radius: 10px;
+    box-sizing: border-box;
+    font-size: 14px;
+    font-family: 'Poppins', sans-serif;
+    background-color: white;
+    color: var(--ui-dark);
+    transition: all 0.3s ease;
+}
+
+input[type="text"]::placeholder,
+input[type="password"]::placeholder {
+    color: #B0B0B0;
+    font-style: normal;
+}
+
+input[type="text"]:focus,
+input[type="password"]:focus {
+    outline: none;
+    border-color: var(--ui-primary);
+    box-shadow: 0 0 0 4px rgba(30, 58, 138, 0.1);
+    background-color: #FAFBFC;
+}
+
+/* Login Button */
+button {
+    background: linear-gradient(135deg, var(--ui-primary) 0%, var(--ui-accent) 100%);
+    color: white;
+    border: none;
+    padding: 14px 20px;
+    border-radius: 10px;
+    width: 100%;
+    font-size: 15px;
+    font-weight: 700;
+    font-family: 'Poppins', sans-serif;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    margin-top: 10px;
+    box-shadow: 0 4px 15px rgba(30, 58, 138, 0.25);
+}
+
+button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(30, 58, 138, 0.35);
+    background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
+}
+
+button:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 10px rgba(30, 58, 138, 0.25);
+}
+
+/* Error Message */
+.error-message {
+    color: #DC2626;
+    text-align: center;
+    margin-bottom: 20px;
+    font-weight: 600;
+    font-size: 14px;
+    padding: 12px;
+    background: #FEE2E2;
+    border-radius: 8px;
+    border-left: 3px solid #DC2626;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .login-container {
+        padding: 40px 25px;
+        margin: 20px;
+    }
+
+    .login-title {
+        font-size: 24px;
+        margin-bottom: 25px;
+    }
+
+    input[type="text"],
+    input[type="password"] {
+        font-size: 16px;
+        padding: 12px 14px;
+    }
+
+    button {
+        padding: 12px;
+        font-size: 14px;
+    }
+}
+
+@media (max-width: 480px) {
+    body {
+        padding: 10px;
+    }
+
+    .login-container {
+        padding: 30px 20px;
+        border-radius: 12px;
+    }
+
+    .login-title {
+        font-size: 20px;
+        margin-bottom: 20px;
+    }
+
+    .logo-container img {
+        height: 70px;
+    }
+
+    input[type="text"],
+    input[type="password"] {
+        font-size: 16px;
+        padding: 11px 12px;
+        margin: 12px 0;
+    }
+
+    button {
+        padding: 11px;
+        font-size: 13px;
+    }
+}

@@ -1,10 +1,41 @@
 <?php
 // index.php - Visitor input + log view
+require_once 'security_headers.php';
+session_start();
 include 'db.php';
 
-// Fetch destinations dynamically
+// Generate CSRF token for form
+if (empty($_SESSION['csrf_token'])) {
+  $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+
+// Fetch destinations with deterministic admin availability
+// Priority: director > super_admin > destination_admin
+// Tiebreaker: most recent last_status_change, then smallest user_id
 $destinations = [];
-$sql = "SELECT id, name FROM destinations ORDER BY name ASC";
+$sql = "
+    SELECT 
+        d.id,
+        d.name,
+        u.availability_status,
+        u.status_message,
+        u.username as admin_username,
+        u.id as admin_id,
+        u.role as admin_role
+    FROM destinations d
+    LEFT JOIN users u ON u.id = (
+        SELECT u2.id 
+        FROM users u2 
+        WHERE u2.destination_id = d.id 
+          AND u2.role IN ('destination_admin', 'super_admin', 'director')
+        ORDER BY 
+            FIELD(u2.role, 'director', 'super_admin', 'destination_admin'),
+            u2.last_status_change DESC,
+            u2.id ASC
+        LIMIT 1
+    )
+    ORDER BY d.name ASC
+";
 $result = $conn->query($sql);
 if ($result && $result->num_rows > 0) {
   while ($row = $result->fetch_assoc()) {
@@ -21,287 +52,212 @@ if ($result && $result->num_rows > 0) {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <title>Visitor Check-In</title>
-  <link rel="stylesheet" href="style.css">
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
-  <!-- START Autocomplete Styles -->
-  <style>
-    .autocomplete-container {
-      position: relative;
-      width: 100%;
-    }
-
-    .suggestion-box {
-      position: absolute;
-      top: 100%;
-      left: 0;
-      right: 0;
-      z-index: 1000;
-      background: #fff;
-      border: 1px solid #ccc;
-      border-top: none;
-      max-height: 160px;
-      overflow-y: auto;
-      display: none;
-      border-radius: 0 0 6px 6px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
-    }
-
-    .suggestion-item {
-      padding: 10px;
-      cursor: pointer;
-      font-size: 14px;
-      font-family: 'Poppins', sans-serif;
-    }
-
-    .suggestion-item:hover {
-      background: #f0f0f0;
-    }
-  </style>
-  <!-- END Autocomplete Styles -->
-
+  <link rel="stylesheet" href="visitor_checkin.css">
+  <link rel="stylesheet" href="visitor_checkin_status.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 
 <body>
 
-  <div style="position: absolute; top: 10px; right: 20px;">
-    <button onclick="toggleAdminMenu()"
-      style="background: none; border: none; cursor: pointer; font-size: 16px; color: white; font-weight: bold;">☰</button>
-    <div id="adminMenu"
-      style="display: none; position: absolute; right: 0; top: 30px; background-color: #ffffff; padding: 12px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.25); min-width: 150px;">
-      <a href="admin_login.php"
-        style="display: block; color: #1a73e8; text-decoration: none; margin-bottom: 5px; font-weight: bold;">Admin
-        Login</a>
-
-    </div>
+  <!-- Logo -->
+  <div class="logo-container">
+    <img src="ui_logo-removebg-preview.png" alt="University of Ibadan Logo">
   </div>
-  <script>
-    function toggleAdminMenu() {
-      const menu = document.getElementById('adminMenu');
-      menu.style.display = (menu.style.display === 'none') ? 'block' : 'none';
-    }
 
-    document.addEventListener('click', function (e) {
-      const menu = document.getElementById('adminMenu');
-      const button = e.target.closest('button');
-      if (!menu.contains(e.target) && (!button || button.textContent.trim() !== '☰')) {
-        menu.style.display = 'none';
-      }
-    });
-  </script>
-
-
-
-  <!-- <div style="position: absolute; top: 10px; left: 10px;">
-    <img src="ui_logo-removebg-preview.png" alt="Logo" style="height: 100px;">
-  </div> -->
+  <!-- Admin Menu -->
+  <div class="admin-menu-wrapper">
+    <a href="admin_login.php" class="admin-login-btn">Admin Login</a>
+  </div>
 
 
 
 
   <div class="container">
     <?php if (isset($_GET['msg']) && $_GET['msg']): ?>
-      <div id="submission-message"
-        style="background:#e6f4ea;color:#1b5e20;padding:14px 18px;margin-bottom:18px;border-radius:8px;font-weight:600;font-size:15px;text-align:center;">
+      <div id="submission-message">
         <?= htmlspecialchars($_GET['msg']) ?>
       </div>
-      <script>
-        setTimeout(function() {
-          var msg = document.getElementById('submission-message');
-          if (msg) {
-            msg.classList.add('fade-out');
-            setTimeout(function() {
-              msg.style.display = 'none';
-              // Optionally, remove the msg param from the URL without reloading:
-              if (window.history.replaceState) {
-                const url = new URL(window.location);
-                url.searchParams.delete('msg');
-                window.history.replaceState({}, document.title, url.pathname + url.search);
-              }
-            }, 700); // Match the transition duration
-          }
-        }, 4000); // 4 seconds before fade starts
-      </script>
     <?php endif; ?>
 
-    <form class="registration-form" action="submit.php" method="POST">
+    <form class="registration-form" action="submit.php" method="POST" id="checkinForm">
+      <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token']) ?>">
+
+      <!-- Message Mode Hidden Inputs (populated by JavaScript) -->
+      <input type="hidden" name="submission_mode" id="submission_mode" value="checkin">
+      <input type="hidden" name="admin_id" id="admin_id" value="">
+      <input type="hidden" name="availability_snapshot" id="availability_snapshot" value="">
+      <input type="hidden" name="status_message_snapshot" id="status_message_snapshot" value="">
+
       <h2>VISITOR CHECK-IN</h2>
-      <div class="user details">
 
-
-        <div class="form-row">
-          <div class="form-group">
-            <label>Full Name</label>
-            <input type="text" name="fullname" placeholder="Enter Your Full Name" required>
-          </div>
-          <div class="form-group">
-            
-          </div>
+      <!-- STEP 1: Select Destination -->
+      <div id="step-1-destination">
+        <div class="form-group">
+          <label>Select Destination</label>
+          <select name="destination" id="destination" required class="large-select">
+            <option value="">-- Choose Where You Are Visiting --</option>
+            <?php foreach ($destinations as $dest):
+              $status = $dest['availability_status'] ?? 'available';
+              // Logic to handle status labels...
+              ?>
+              <option value="<?= $dest['id'] ?>" data-status="<?= htmlspecialchars($status) ?>"
+                data-message="<?= htmlspecialchars($dest['status_message'] ?? '') ?>">
+                <?= htmlspecialchars($dest['name']) ?>
+              </option>
+            <?php endforeach; ?>
+          </select>
         </div>
 
-
-
-
-        <!-- Row 2 -->
-        <div class="form-row">
-          <div class="form-group">
-            <label>Phone Number</label>
-            <input type="tel" name="phone_number" placeholder="Enter Your Phone Number" required pattern="[0-9]{7,15}"
-              title="Enter a valid phone number (numbers only, 7–15 digits)" oninput="validatePhone(this)">
-          </div>
-          <div class="form-group">
-          <label>Destination</label>
-            <select name="destination" id="destination" required>
-              <option value="">Select Destination</option>
-              <?php foreach ($destinations as $dest): ?>
-                <option value="<?= $dest['id'] ?>"><?= htmlspecialchars($dest['name']) ?></option>
-              <?php endforeach; ?>
-            </select>
-
+        <!-- Status Preview Banner (Initially Hidden) -->
+        <div id="adminStatusBanner" class="status-banner" style="display: none;">
+          <div class="status-icon-large"></div>
+          <div class="status-text-content">
+            <h3 id="statusTitle"></h3>
+            <p id="statusMessagePreview"></p>
           </div>
         </div>
+      </div>
 
+      <!-- STEP 2: Visitor Details (Hidden until destination selected & available) -->
+      <div id="step-2-details" style="display: none;">
+        <div class="user details">
 
-        <!-- Row 3 -->
-        <div class="form-row">
-          <!-- START Autocomplete Faculty -->
-          <div class="form-group autocomplete-container">
-            <label>Faculty/Organization</label>
-            <input type="text" id="faculty" name="faculty" placeholder="Faculty / Organization" autocomplete="off"
-              required>
-            <div id="facultySuggestions" class="suggestion-box"></div>
+          <!-- Row 1: Full Name -->
+          <div class="form-row">
+            <div class="form-group">
+              <label>Full Name</label>
+              <input type="text" name="fullname" placeholder="Enter Your Full Name" required>
+            </div>
           </div>
-          <!-- END Autocomplete Faculty -->
 
+          <!-- Row 2: Phone -->
+          <div class="form-row">
+            <div class="form-group">
+              <label>Phone Number</label>
+              <input type="tel" name="phone_number" placeholder="Enter Your Phone Number" required pattern="[0-9]{7,15}"
+                title="Enter a valid phone number (numbers only, 7–15 digits)" oninput="validatePhone(this)">
+            </div>
 
-          <div class="form-group">
-            <label for="purpose">Purpose of Visit / Leave a Message</label>
-            <textarea name="purpose" id="purpose" rows="4" required></textarea>
+            <div class="form-group autocomplete-container">
+              <label>Faculty/Organization</label>
+              <input type="text" id="faculty" name="faculty" placeholder="Faculty / Organization" autocomplete="off"
+                required>
+              <div id="facultySuggestions" class="suggestion-box"></div>
+            </div>
           </div>
+
+          <!-- Row 3: Purpose -->
+          <div class="form-row">
+            <div class="form-group" style="width: 100%;">
+              <label for="purpose">Purpose of Visit / Leave a Message</label>
+              <textarea name="purpose" id="purpose" required
+                placeholder="Briefly state your purpose or message..."></textarea>
+            </div>
+          </div>
+
+          <!-- Row 4: Visitor Type -->
+          <div class="form-group visitor-type-group">
+            <label><strong>Visitor Type</strong></label>
+            <div class="visitor-type-options">
+              <label><input type="radio" name="visitor_type" value="staff" required> Staff</label>
+              <label><input type="radio" name="visitor_type" value="student" required> Student</label>
+              <label><input type="radio" name="visitor_type" value="guest" required> Guest</label>
+            </div>
+          </div>
+
+          <!-- ACTION BUTTONS: Side-by-Side -->
+          <div class="action-buttons-row">
+            <button type="submit" class="btn btn-primary" name="checkin_type" value="normal" id="btnCheckIn">
+              Check In
+            </button>
+
+            <button type="submit" class="btn btn-secondary" name="checkin_type" value="alternate" id="btnLeaveMessage"
+              onclick="return confirmAlternate()">
+              Leave a Message
+            </button>
+          </div>
+
         </div>
+      </div>
 
-
-        <!-- Row 4 -->
-        <!-- Visitor Type -->
-        <div class="form-group visitor-type-group">
-          <label><strong>Visitor Type</strong></label>
-          <div class="visitor-type-options">
-            <label><input type="radio" name="visitor_type" value="staff" required> Staff </label>
-            <label><input type="radio" name="visitor_type" value="student" required> Student </label>
-            <label><input type="radio" name="visitor_type" value="guest" required> Guest </label>
+      <!-- Message Mode Panel (Away/Unavailable states) -->
+      <div id="step-message-mode" style="display: none;">
+        <div class="message-mode-panel">
+          <div class="message-mode-header">
+            <span class="message-icon">📝</span>
+            <h3>Leave a Message</h3>
           </div>
+
+          <p class="message-mode-notice" id="messageNotice">
+            The admin is currently unavailable. Please leave a message below.
+          </p>
+
+          <!-- Basic Info (Name/Phone) for message mode -->
+          <div class="form-row">
+            <div class="form-group">
+              <label>Your Name</label>
+              <input type="text" name="fullname" placeholder="Enter Your Full Name" class="msg-fullname">
+            </div>
+            <div class="form-group">
+              <label>Phone Number</label>
+              <input type="tel" name="phone_number" placeholder="Your Phone Number" class="msg-phone"
+                pattern="[0-9]{7,15}">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group autocomplete-container">
+              <label>Faculty/Organization</label>
+              <input type="text" name="faculty" placeholder="Faculty / Organization" class="msg-faculty">
+            </div>
+          </div>
+
+          <!-- Message Content -->
+          <div class="form-row">
+            <div class="form-group" style="width: 100%;">
+              <label for="visitor_message">Your Message</label>
+              <textarea name="visitor_message" id="visitor_message" rows="4"
+                placeholder="Please describe your purpose or leave a detailed message..."></textarea>
+            </div>
+          </div>
+
+          <!-- Preferred Return Time (Optional) -->
+          <div class="form-row">
+            <div class="form-group">
+              <label for="preferred_return">Preferred Callback Time (Optional)</label>
+              <input type="datetime-local" name="preferred_return" id="preferred_return" class="datetime-input">
+            </div>
+            <div class="form-group">
+              <label><strong>Visitor Type</strong></label>
+              <div class="visitor-type-options">
+                <label><input type="radio" name="visitor_type" value="staff"> Staff</label>
+                <label><input type="radio" name="visitor_type" value="student"> Student</label>
+                <label><input type="radio" name="visitor_type" value="guest"> Guest</label>
+              </div>
+            </div>
+          </div>
+
+          <div class="action-buttons-row">
+            <button type="submit" class="btn btn-primary" id="btnSubmitMessage" onclick="setSubmissionMode('message')">
+              📩 Send Message
+            </button>
+            <button type="button" class="btn btn-outline" id="btnProceedAnyway" onclick="showProceedAnyway()">
+              Proceed Anyway →
+            </button>
+          </div>
+
+          <p class="proceed-hint" id="proceedHint" style="display: none;">
+            <small>⚠️ The admin is unavailable. Your check-in will be queued.</small>
+          </p>
         </div>
+      </div>
 
-
-        <button type="submit" class="btn" name="checkin_type" value="normal">Check In</button>
-
-        <!-- Divider -->
-        <hr style="margin: 20px 0; border: 1px solid #ccc;">
-
-        <!-- Guidance text -->
-        <p style="color: #444; font-size: 14px; margin-bottom: 8px;">
-          <strong>Leave a Message:</strong> Only use this if the department head is unavailable at the time of your
-          visit.
-        </p>
-
-        <!-- Alternate Check-In button -->
-        <button type="submit" class="alternate-btn" name="checkin_type" value="alternate"
-          onclick="return confirmAlternate()">
-          Leave a Message
-        </button>
     </form>
   </div>
-  </div>
 
-
-
-
-  <script>
-    function confirmAlternate() {
-      return confirm("Are you sure you want to proceed with Alternate Check-In?");
-    }
-
-
-  </script>
-
-  <!-- START Autocomplete Script -->
-  <script>
-    (function () {
-      const facultyInput = document.getElementById('faculty');
-      const suggestionBox = document.getElementById('facultySuggestions');
-
-      // You can extend this list
-      const facultyList = [
-        'Faculty of Engineering',
-        'Faculty of Veterinary Medicine',
-        'Faculty of The Social Sciences',
-        'Faculty of Technology',
-        'Faculty of Renewable Natural Resources',
-        'Faculty of Public Health',
-        'Faculty of Pharmacy',
-        'Faculty ofNursing',
-        'Faculty of Multidisciplinary Studies',
-        'Faculty of Law',
-        'Faculty of Environmental Design and Management',
-        'Faculty of Education',
-        'Faculty of Economics and Management Sciences',
-        'Faculty of Dentistry',
-        'Faculty of Computing',
-        'Faculty of Clinical Sciences',
-        'Faculty of Basic Medical Sciences',
-        'Faculty of Basic Clinical Sciences',
-        'Faculty of Arts',
-        'Faculty of Agriculture',
-      ];
-
-      function render(list) {
-        suggestionBox.innerHTML = '';
-        list.forEach(item => {
-          const div = document.createElement('div');
-          div.className = 'suggestion-item';
-          div.textContent = item;
-          div.addEventListener('click', () => {
-            facultyInput.value = item;
-            suggestionBox.style.display = 'none';
-          });
-          suggestionBox.appendChild(div);
-        });
-        suggestionBox.style.display = list.length ? 'block' : 'none';
-      }
-
-      facultyInput.addEventListener('input', function () {
-        const q = this.value.toLowerCase().trim();
-        if (!q) { suggestionBox.style.display = 'none'; return; }
-        const matches = facultyList.filter(v => v.toLowerCase().includes(q));
-        render(matches);
-      });
-
-      // Show all on focus if field has some text; optional: show top items
-      facultyInput.addEventListener('focus', function () {
-        const q = this.value.toLowerCase().trim();
-        const matches = q ? facultyList.filter(v => v.toLowerCase().includes(q)) : facultyList.slice(0, 0);
-        render(matches);
-      });
-
-      document.addEventListener('click', (e) => {
-        if (!e.target.closest('.autocomplete-container')) {
-          suggestionBox.style.display = 'none';
-        }
-      });
-    })();
-
-
-    // Phone number validation
-    function validatePhone(input) {
-      input.value = input.value.replace(/[^0-9]/g, '');
-    }
-
-  </script>
-  <!-- END Autocomplete Script -->
-
-
-
-
-
+  <!-- External JavaScript for CSP Compliance -->
+  <script src="assets/js/realtime_client.js"></script>
+  <script src="visitor_checkin.js" defer></script>
 
 </body>
 

@@ -1,4 +1,5 @@
 <?php
+require_once 'security_headers.php';
 session_start();
 if (!isset($_SESSION['admin_logged_in'])) {
     header('Location: admin_login.php');
@@ -47,14 +48,20 @@ $result = $stmt->get_result();
   </style>
 </head>
 <body>
-  <div class="dropdown">
-    <button>☰ Menu</button>
-    <div class="dropdown-content">
-      <a href="backup_records.php">Daily Backups</a>
-      <a href="reset.php">Reset & Backup Today's Data</a>
-      <a href="logout.php" style="color: red;">Logout</a>
+  <!-- New Simple Menu -->
+<div class="simple-menu-container">
+  <button class="menu-toggle" id="menuToggle">☰ Menu</button>
+  <div class="menu-panel" id="menuPanel">
+    <div class="menu-header">
+      <strong>Navigation</strong>
+      <button class="menu-close" id="menuClose">×</button>
     </div>
+    <a href="admin_dashboard.php"><span class="menu-icon">Home</span> Dashboard</a>
+    <a href="backup_records.php"><span class="menu-icon">Download</span> Daily Backups</a>
+    <a href="reset.php"><span class="menu-icon">Refresh</span> Reset & Backup Today's Data</a>
+    <a href="logout.php" class="logout-btn"><span class="menu-icon">Exit</span> Logout</a>
   </div>
+</div>
 
   <div class="container">
     <h2>All Visitor Records</h2>
@@ -84,5 +91,7 @@ $result = $stmt->get_result();
       <?php endwhile; ?>
     </table>
   </div>
+  
+  <script src="simple_menu.js"></script>
 </body>
 </html>

@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Menu Debug Test</title>
+    <style>
+        .admin-menu-wrapper {
+            position: fixed;
+            top: 15px;
+            right: 15px;
+            z-index: 1001;
+        }
+        
+        .admin-toggle-btn {
+            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+            border: none;
+            color: white;
+            padding: 10px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 13px;
+            font-family: 'Poppins', sans-serif;
+        }
+        
+        #adminMenu {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: 45px;
+            background: white;
+            padding: 8px 0;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            min-width: 200px;
+            border: 1px solid #e5e7eb;
+        }
+        
+        #adminMenu.show {
+            display: block;
+        }
+        
+        #adminMenu a {
+            display: block;
+            color: #1e3a8a;
+            text-decoration: none;
+            padding: 12px 18px;
+            font-weight: 500;
+            font-size: 14px;
+        }
+        
+        #adminMenu a:hover {
+            background: #f3f4f6;
+            color: #1e3a8a;
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-menu-wrapper">
+        <button class="admin-toggle-btn" id="adminToggle">☰ Admin</button>
+        <div id="adminMenu">
+            <a href="admin_login.php">Admin Login</a>
+        </div>
+    </div>
+    
+    <div style="padding: 50px;">
+        <h1>Menu Button Test</h1>
+        <p>Click the Admin button in the top-right corner to test the menu functionality.</p>
+        <p>Check the browser console for any errors.</p>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM loaded');
+            
+            const adminToggle = document.getElementById('adminToggle');
+            const adminMenu = document.getElementById('adminMenu');
+            
+            console.log('adminToggle:', adminToggle);
+            console.log('adminMenu:', adminMenu);
+            
+            if (adminToggle && adminMenu) {
+                console.log('Elements found, adding event listener');
+                
+                adminToggle.addEventListener('click', function(e) {
+                    console.log('Menu button clicked!');
+                    e.preventDefault();
+                    adminMenu.classList.toggle('show');
+                    console.log('Menu toggled, show class:', adminMenu.classList.contains('show'));
+                });
+                
+                // Close menu when clicking outside
+                document.addEventListener('click', function(e) {
+                    if (!adminToggle.contains(e.target) && !adminMenu.contains(e.target)) {
+                        adminMenu.classList.remove('show');
+                    }
+                });
+            } else {
+                console.error('Elements not found!');
+            }
+        });
+    </script>
+</body>
+</html>

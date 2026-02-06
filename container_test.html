@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Container Test - Smaller Laptops</title>
+    <link rel="stylesheet" href="visitor_checkin.css">
+    <style>
+        /* Debug styles */
+        body {
+            background: linear-gradient(45deg, #ff0000, #00ff00, #0000ff);
+            padding: 20px;
+        }
+        
+        .debug-info {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: yellow;
+            padding: 10px;
+            border: 2px solid black;
+            z-index: 9999;
+            font-family: monospace;
+        }
+        
+        .test-container {
+            background: red !important;
+            border: 5px solid yellow !important;
+            min-height: 300px !important;
+            padding: 20px !important;
+        }
+        
+        .test-heading {
+            background: lime !important;
+            color: black !important;
+            font-size: 32px !important;
+            padding: 20px !important;
+            border: 3px solid blue !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="debug-info">
+        Screen Width: <span id="width"></span>px<br>
+        Screen Height: <span id="height"></span>px<br>
+        Container Visible: <span id="container-check">Checking...</span>
+    </div>
+
+    <!-- Logo -->
+    <div class="logo-container">
+        <img src="ui_logo-removebg-preview.png" alt="Logo" style="height: 70px;">
+    </div>
+
+    <!-- Admin Menu -->
+    <div class="admin-menu-wrapper">
+        <button class="admin-toggle-btn">☰ Admin</button>
+        <div id="adminMenu">
+            <a href="admin_login.php">Admin Login</a>
+        </div>
+    </div>
+
+    <!-- TEST CONTAINER -->
+    <div class="container test-container" id="testContainer">
+        <h2 class="test-heading">TEST CONTAINER - CAN YOU SEE THIS?</h2>
+        
+        <form class="registration-form">
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Full Name</label>
+                    <input type="text" placeholder="Enter Your Full Name" style="background: yellow !important; border: 2px solid red !important;">
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Phone Number</label>
+                    <input type="tel" placeholder="Enter Your Phone Number" style="background: yellow !important; border: 2px solid red !important;">
+                </div>
+            </div>
+            
+            <button type="submit" class="btn" style="background: lime !important; color: black !important; border: 3px solid blue !important;">TEST BUTTON</button>
+        </form>
+    </div>
+
+    <script>
+        // Update screen info
+        document.getElementById('width').textContent = window.innerWidth;
+        document.getElementById('height').textContent = window.innerHeight;
+        
+        // Check container visibility
+        function checkContainer() {
+            const container = document.getElementById('testContainer');
+            const rect = container.getBoundingClientRect();
+            
+            const isVisible = rect.width > 0 && rect.height > 0;
+            document.getElementById('container-check').textContent = isVisible ? 'YES' : 'NO';
+            
+            console.log('Container Rect:', rect);
+            console.log('Container Visible:', isVisible);
+            console.log('Container Styles:', window.getComputedStyle(container));
+        }
+        
+        checkContainer();
+        window.addEventListener('resize', () => {
+            document.getElementById('width').textContent = window.innerWidth;
+            document.getElementById('height').textContent = window.innerHeight;
+            checkContainer();
+        });
+        
+        // Log all CSS rules
+        setTimeout(() => {
+            console.log('=== CSS Rules for .container ===');
+            const rules = Array.from(document.styleSheets).flatMap(sheet => 
+                Array.from(sheet.cssRules).filter(rule => rule.selectorText === '.container')
+            );
+            console.log(rules);
+        }, 1000);
+    </script>
+</body>
+</html>

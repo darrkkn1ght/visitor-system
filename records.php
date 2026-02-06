@@ -113,24 +113,6 @@ $result = $stmt->get_result();
     <a href="index.php" class="btn btn-secondary mt-3">Back to Home</a>
   </div>
 
-  <script>
-    function checkOutVisitor(id, btn) {
-      const xhr = new XMLHttpRequest();
-      xhr.open("POST", "timeout.php", true);
-      xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-      xhr.onload = function () {
-        if (xhr.status === 200 && xhr.responseText.trim() === "success") {
-          btn.textContent = "Checked Out";
-          btn.disabled = true;
-          // btn.classList.remove("btn-checkout");
-          // btn.classList.add("btn-secondary");
-
-        } else {
-          alert("Error checking out. Please try again.");
-        }
-      };
-      xhr.send("id=" + encodeURIComponent(id));
-    }
-  </script>
+  <script src="records.js" defer></script>
 </body>
 </html>

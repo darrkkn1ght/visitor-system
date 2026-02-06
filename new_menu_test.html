@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>New Menu Test</title>
+    <link rel="stylesheet" href="admin_dashboard.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --ui-primary: #1E3A8A;
+            --ui-gold: #D4AF37;
+            --ui-light: #EFF6FF;
+            --ui-dark: #0F172A;
+            --ui-accent: #1e40af;
+            --ui-secondary: #DBEAFE;
+            --ui-border: #BFDBFE;
+            --ui-success: #10B981;
+            --ui-shadow: 0 2px 8px rgba(30, 58, 138, 0.1);
+            --ui-shadow-lg: 0 20px 60px rgba(30, 58, 138, 0.15);
+        }
+        
+        body { 
+            font-family: 'Poppins', sans-serif; 
+            padding: 20px; 
+            background: linear-gradient(rgba(30, 58, 138, 0.12), rgba(30, 58, 138, 0.12)), url('Picture2.png') no-repeat center center fixed;
+            background-size: cover;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .test-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 30px;
+            border-radius: 15px;
+            margin: 50px auto;
+            max-width: 800px;
+            box-shadow: var(--ui-shadow-lg);
+            border: 1px solid var(--ui-border);
+        }
+        .logo-container img {
+            height: 60px;
+        }
+    </style>
+</head>
+<body>
+    <div class="logo-container">
+        <img src="ui_logo-removebg-preview.png" alt="University of Ibadan Logo">
+    </div>
+
+    <!-- New Simple Menu -->
+    <div class="simple-menu-container">
+        <button class="menu-toggle" id="menuToggle">☰ Menu</button>
+        <div class="menu-panel" id="menuPanel">
+            <div class="menu-header">
+                <strong>Navigation</strong>
+                <button class="menu-close" id="menuClose">×</button>
+            </div>
+            <a href="destinations.php"><span class="menu-icon">⚷</span> Manage Destinations</a>
+            <a href="events_calendar.php"><span class="menu-icon">📅</span> Events Calendar</a>
+            <a href="backup_records.php"><span class="menu-icon">⬇</span> Export Data</a>
+            <a href="logout.php" class="logout-btn"><span class="menu-icon">⎋</span> Logout</a>
+        </div>
+    </div>
+
+    <div class="test-container">
+        <h1>🎉 New Menu Test Page</h1>
+        <p><strong>Click the "☰ Menu" button in the top-right corner to test the new menu!</strong></p>
+        
+        <h3>✨ New Features:</h3>
+        <ul>
+            <li>🎨 <strong>Modern slide-out panel</strong> instead of dropdown</li>
+            <li>📱 <strong>Fully responsive</strong> - works on mobile</li>
+            <li>⌨️ <strong>Keyboard support</strong> - press ESC to close</li>
+            <li>🖱️ <strong>Click outside to close</strong></li>
+            <li>🎭 <strong>Smooth animations</strong> and hover effects</li>
+            <li>🌈 <strong>Beautiful gradients</strong> and modern design</li>
+        </ul>
+
+        <h3>🔧 How it works:</h3>
+        <ul>
+            <li>Click the menu button to open the slide-out panel</li>
+            <li>Click the × button or press ESC to close</li>
+            <li>Click anywhere outside to close</li>
+            <li>Menu items have hover effects and icons</li>
+        </ul>
+
+        <p><em>Check the browser console (F12) for debug messages!</em></p>
+    </div>
+
+    <script src="simple_menu.js"></script>
+</body>
+</html>
