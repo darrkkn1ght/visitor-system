@@ -22,7 +22,10 @@ window.RealtimeClient = (function () {
         console.log('RealtimeClient: Connecting...', config);
 
         try {
-            ws = new WebSocket('ws://localhost:3005/ws');
+            // Dynamic hostname for LAN access
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const host = window.location.hostname;
+            ws = new WebSocket(`${protocol}//${host}:3005/ws`);
 
             ws.onopen = function () {
                 console.log('RealtimeClient: Connected');
