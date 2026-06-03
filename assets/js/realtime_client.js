@@ -22,9 +22,11 @@ window.RealtimeClient = (function () {
         console.log('RealtimeClient: Connecting...', config);
 
         try {
-            // Dynamic hostname for LAN access
+            // Determine protocol: wss for https, ws for http
+            // Note: Mixing ws/https is blocked by browsers ("Mixed Content")
             const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
             const host = window.location.hostname;
+            console.log(`RealtimeClient: Using protocol ${protocol} on host ${host}`);
             ws = new WebSocket(`${protocol}//${host}:3005/ws`);
 
             ws.onopen = function () {

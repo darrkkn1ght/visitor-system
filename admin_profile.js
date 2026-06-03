@@ -104,12 +104,21 @@
      */
     function initStatusMessage() {
         const input = document.getElementById('statusMessage');
+        const btnUpdate = document.getElementById('btnUpdateStatusMsg');
 
         input.addEventListener('input', updateCharCounter);
 
-        // Auto-save on blur
-        input.addEventListener('blur', function () {
-            if (this.value.trim() !== '') {
+        // Save on button click
+        if (btnUpdate) {
+            btnUpdate.addEventListener('click', function () {
+                updateAvailabilityStatus(currentStatus);
+            });
+        }
+
+        // Also allow Enter key to submit
+        input.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
                 updateAvailabilityStatus(currentStatus);
             }
         });

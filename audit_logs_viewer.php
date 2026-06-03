@@ -17,7 +17,7 @@ if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== tru
 }
 
 // Check if user is superadmin
-if ($_SESSION['role'] !== 'superadmin') {
+if ($_SESSION['role'] !== 'superadmin' && $_SESSION['role'] !== 'super_admin') {
     error_log("Unauthorized audit log access attempt by user: " . $_SESSION['username'] . " from IP: " . $_SERVER['REMOTE_ADDR']);
     die("Access denied. Audit logs are only available to superadmin.");
 }

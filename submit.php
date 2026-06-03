@@ -34,7 +34,7 @@ function validate_visitor_input($fullname, $faculty, $phone, $purpose, $visitor_
     }
 
     // Visitor type: must be one of allowed values
-    $allowed_types = ['staff', 'student', 'vendor', 'family', 'other'];
+    $allowed_types = ['staff', 'student', 'vendor', 'family', 'guest', 'other'];
     if (!in_array($visitor_type, $allowed_types)) {
         $errors['visitor_type'] = "Invalid visitor type";
     }
@@ -57,14 +57,42 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         die("Request validation failed. Please try again.");
     }
 
-    // Collect fields
-    $fullname = trim($_POST['fullname']);
-    $faculty = trim($_POST['faculty']);
-    $phone = trim($_POST['phone_number']);
-    $purpose = trim($_POST['purpose']);
+    // Collect fields - handle arrays (duplicate field names in check-in vs message mode)
+    // When both step-2 and message-mode inputs exist, PHP receives arrays; pick the last non-empty value
+    $fullname_raw = $_POST['fullname'] ?? '';
+    if (is_array($fullname_raw)) {
+        $filtered = array_filter($fullname_raw, 'strlen');
+        $fullname = !empty($filtered) ? trim(end($filtered)) : '';
+    } else {
+        $fullname = trim($fullname_raw);
+    }
+
+    $faculty_raw = $_POST['faculty'] ?? '';
+    if (is_array($faculty_raw)) {
+        $filtered = array_filter($faculty_raw, 'strlen');
+        $faculty = !empty($filtered) ? trim(end($filtered)) : '';
+    } else {
+        $faculty = trim($faculty_raw);
+    }
+
+    $phone_raw = $_POST['phone_number'] ?? '';
+    if (is_array($phone_raw)) {
+        $filtered = array_filter($phone_raw, 'strlen');
+        $phone = !empty($filtered) ? trim(end($filtered)) : '';
+    } else {
+        $phone = trim($phone_raw);
+    }
+
+    $purpose = trim($_POST['purpose'] ?? '');
     $destination_id = intval($_POST['destination']);
     $other_dest = isset($_POST['other_destination']) ? trim($_POST['other_destination']) : "";
-    $visitor_type = trim($_POST['visitor_type']);
+    $visitor_type_raw = $_POST['visitor_type'] ?? '';
+    if (is_array($visitor_type_raw)) {
+        $filtered = array_filter($visitor_type_raw, 'strlen');
+        $visitor_type = !empty($filtered) ? trim(end($filtered)) : '';
+    } else {
+        $visitor_type = trim($visitor_type_raw);
+    }
     $checkin_type = $_POST['checkin_type'] ?? 'normal';
 
     // New message mode fields
@@ -85,6 +113,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // Determine if this is message mode
     $is_message_mode = ($submission_mode === 'message' || !empty($visitor_message));
+
+    // In message mode, use visitor_message as purpose if purpose is empty
+    if ($is_message_mode && empty($purpose) && !empty($visitor_message)) {
+        $purpose = $visitor_message;
+    }
 
     // ============================================================
     // SERVER-SIDE INPUT VALIDATION
@@ -191,28 +224,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         $stmt_users->close();
 
-        // Realtime Notification
-        if ($is_message_mode) {
-            require_once 'includes/realtime_notify.php';
+        // Realtime Notification — send for BOTH check-ins and messages
+        require_once 'includes/realtime_notify.php';
 
-            // Prepare payload
-            $payload = [
-                'id' => $visitor_id,
-                'fullname' => $fullname,
-                'phone' => $phone,
-                'purpose' => $purpose,
-                'message' => $visitor_message,
-                'queue_status' => $queue_status,
-                'availability_snapshot' => $availability_snapshot,
-                'status_message_snapshot' => $status_message_snapshot,
-                'preferred_return' => $preferred_return,
-                'submitted_at' => $time_in,
-                'destination_name' => '', // Could fetch, but frontend likely has it or uses ID
-                'destination_id' => $destination_id,
-                'admin_id' => $admin_id
-            ];
+        $payload = [
+            'id' => $visitor_id,
+            'fullname' => $fullname,
+            'phone' => $phone,
+            'purpose' => $purpose,
+            'visitor_type' => $visitor_type,
+            'submitted_at' => $time_in,
+            'destination_id' => $destination_id,
+            'destination_name' => '',
+            'admin_id' => $admin_id
+        ];
+
+        if ($is_message_mode) {
+            // Message mode: include message-specific fields
+            $payload['message'] = $visitor_message;
+            $payload['queue_status'] = $queue_status;
+            $payload['availability_snapshot'] = $availability_snapshot;
+            $payload['status_message_snapshot'] = $status_message_snapshot;
+            $payload['preferred_return'] = $preferred_return;
 
             notify_realtime('new_message', $admin_id, $destination_id, $payload);
+        } else {
+            // Normal check-in: emit visitor_arrival event
+            notify_realtime('visitor_arrival', $admin_id, $destination_id, $payload);
         }
 
         if ($is_alternate === 0) {

@@ -271,9 +271,14 @@ if (empty($_SESSION['csrf_token'])) {
 
                 <div class="status-message-section">
                     <label for="statusMessage">Status Message (optional):</label>
-                    <input type="text" id="statusMessage" class="status-message-input"
-                        placeholder="e.g., In a meeting until 3 PM"
-                        value="<?= htmlspecialchars($profile['status_message'] ?? '') ?>" maxlength="255">
+                    <div class="status-message-row">
+                        <input type="text" id="statusMessage" class="status-message-input"
+                            placeholder="e.g., In a meeting until 3 PM"
+                            value="<?= htmlspecialchars($profile['status_message'] ?? '') ?>" maxlength="255">
+                        <button type="button" id="btnUpdateStatusMsg" class="btn-update-status" title="Update status message">
+                            Update
+                        </button>
+                    </div>
                     <div class="char-counter">
                         <span id="charCount">0</span>/255
                     </div>

@@ -26,6 +26,153 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   // ============================================================================
+  // FORM SUBMISSION HANDLER - FETCH + INLINE ERRORS
+  // ============================================================================
+  const checkinForm = document.getElementById('checkinForm');
+  if (checkinForm) {
+    // Track which submit button was clicked (FormData doesn't include it)
+    let clickedSubmitBtn = null;
+    checkinForm.querySelectorAll('button[type="submit"]').forEach(btn => {
+      btn.addEventListener('click', function () {
+        clickedSubmitBtn = this;
+      });
+    });
+
+    checkinForm.addEventListener('submit', async function (e) {
+      e.preventDefault(); // Always prevent — we handle submission via fetch
+
+      clearFormErrors(checkinForm);
+
+      const destination = document.getElementById('destination').value.trim();
+      const submissionMode = document.getElementById('submission_mode');
+      const isMessageMode = submissionMode && submissionMode.value === 'message';
+
+      // Determine which inputs to validate based on active mode
+      let fullname, faculty, phone, purpose;
+
+      if (isMessageMode) {
+        const msgFullname = document.querySelector('.msg-fullname');
+        const msgFaculty = document.querySelector('.msg-faculty');
+        const msgPhone = document.querySelector('.msg-phone');
+        const msgMessage = document.getElementById('visitor_message');
+
+        fullname = msgFullname ? msgFullname.value.trim() : '';
+        faculty = msgFaculty ? msgFaculty.value.trim() : '';
+        phone = msgPhone ? msgPhone.value.trim() : '';
+        purpose = msgMessage ? msgMessage.value.trim() : '';
+      } else {
+        const fullnameInput = document.querySelector('#step-2-details input[name="fullname"]');
+        const facultyInput = document.querySelector('#step-2-details input[name="faculty"]');
+        const phoneInput = document.querySelector('#step-2-details input[name="phone_number"]');
+        const purposeTextarea = document.querySelector('#step-2-details textarea[name="purpose"]');
+
+        fullname = fullnameInput ? fullnameInput.value.trim() : '';
+        faculty = facultyInput ? facultyInput.value.trim() : '';
+        phone = phoneInput ? phoneInput.value.trim() : '';
+        purpose = purposeTextarea ? purposeTextarea.value.trim() : '';
+      }
+
+      const visitorTypeChecked = document.querySelector('input[name="visitor_type"]:checked');
+
+      // --- Client-side validation (inline errors, no alert) ---
+      const errors = {};
+
+      if (!destination) errors.destination = 'Select a destination first';
+      if (!fullname) errors.fullname = 'Full name is required';
+      if (!faculty) errors.faculty = 'Faculty/Organization is required';
+      if (!phone) errors.phone = 'Phone number is required';
+      else if (!/^[0-9]{7,15}$/.test(phone)) errors.phone = 'Phone must be 7-15 digits (numbers only)';
+      if (!purpose) errors.purpose = isMessageMode ? 'Message is required' : 'Purpose of visit is required';
+      if (!visitorTypeChecked) errors.visitor_type = 'Please select a visitor type';
+
+      if (Object.keys(errors).length > 0) {
+        displayFieldErrors(errors, isMessageMode);
+        return;
+      }
+
+      // --- Validation passed — submit via fetch ---
+      console.log('✓ Form validation passed - submitting via fetch...');
+
+      // Disable inputs in the INACTIVE panel to prevent empty duplicates
+      // (FormData collects all inputs; PHP takes the last value which would be empty)
+      const inactivePanel = isMessageMode
+        ? document.getElementById('step-2-details')
+        : document.getElementById('step-message-mode');
+      const disabledInputs = [];
+      if (inactivePanel) {
+        inactivePanel.querySelectorAll('input, textarea, select').forEach(el => {
+          if (!el.disabled) {
+            el.disabled = true;
+            disabledInputs.push(el);
+          }
+        });
+      }
+
+      const formData = new FormData(checkinForm);
+
+      // Re-enable the inputs we just disabled
+      disabledInputs.forEach(el => { el.disabled = false; });
+
+      // Append clicked submit button's name/value (FormData misses this)
+      if (clickedSubmitBtn && clickedSubmitBtn.name) {
+        formData.append(clickedSubmitBtn.name, clickedSubmitBtn.value);
+      }
+
+      // Disable submit buttons while request is in flight
+      const submitButtons = checkinForm.querySelectorAll('button[type="submit"]');
+      submitButtons.forEach(btn => {
+        btn.disabled = true;
+        btn.dataset.originalText = btn.textContent;
+        btn.textContent = 'Submitting...';
+      });
+
+      try {
+        const response = await fetch('submit.php', {
+          method: 'POST',
+          body: formData
+        });
+
+        // Success: submit.php redirected (302 → confirmation.php or index.php)
+        if (response.redirected) {
+          window.location.href = response.url;
+          return;
+        }
+
+        // Try to parse JSON response (validation error or DB error)
+        const contentType = response.headers.get('content-type') || '';
+        if (contentType.includes('application/json')) {
+          const data = await response.json();
+
+          if (data.success === false && data.errors) {
+            displayFieldErrors(data.errors, isMessageMode);
+          } else {
+            showFormBanner(checkinForm, 'Something went wrong. Please try again.', 'error');
+          }
+        } else {
+          // Non-JSON, non-redirect — could be the redirected page HTML
+          if (response.ok) {
+            window.location.href = response.url;
+          } else {
+            showFormBanner(checkinForm, 'Something went wrong. Please try again.', 'error');
+          }
+        }
+      } catch (err) {
+        console.error('Form submission error:', err);
+        showFormBanner(checkinForm, 'Network error. Please check your connection and try again.', 'error');
+      } finally {
+        // Re-enable submit buttons
+        submitButtons.forEach(btn => {
+          btn.disabled = false;
+          if (btn.dataset.originalText) {
+            btn.textContent = btn.dataset.originalText;
+            delete btn.dataset.originalText;
+          }
+        });
+      }
+    });
+  }
+
+  // ============================================================================
   // ADMIN MENU TOGGLE
   // ============================================================================
   const adminToggle = document.getElementById('adminToggle');
@@ -192,8 +339,8 @@ document.addEventListener('DOMContentLoaded', function () {
       icon: '⏱',
       title: 'Busy',
       class: 'status-busy',
-      showCheckIn: true,
-      showMessageMode: false // Show both options
+      showCheckIn: false,
+      showMessageMode: true // Busy = message only, no check-in
     },
     unavailable: {
       icon: '✕',
@@ -262,23 +409,36 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Handle step visibility based on availability
     if (config.showMessageMode) {
-      // Away or Unavailable: show message mode panel
+      // Away, Unavailable, or Busy: show message mode panel
       if (step2Details) step2Details.style.display = 'none';
       if (stepMessageMode) {
         stepMessageMode.style.display = 'block';
         // Update the notice text
         if (messageNotice) {
-          if (status === 'away') {
+          if (status === 'busy') {
+            messageNotice.textContent = 'This office is currently busy. Please leave a message below.';
+          } else if (status === 'away') {
             messageNotice.textContent = 'The admin is currently away. Please leave a message below.';
           } else {
             messageNotice.textContent = 'The admin is currently unavailable. Please leave a message below.';
           }
         }
       }
+
+      // Hide "Proceed Anyway" button when busy or unavailable
+      const btnProceedAnyway = document.getElementById('btnProceedAnyway');
+      if (btnProceedAnyway) {
+        if (status === 'busy' || status === 'unavailable') {
+          btnProceedAnyway.style.display = 'none';
+        } else {
+          btnProceedAnyway.style.display = '';
+        }
+      }
+
       // Set submission mode to message by default
       if (hiddenSubmissionMode) hiddenSubmissionMode.value = 'message';
     } else {
-      // Available or Busy: show normal check-in form
+      // Available: show normal check-in form
       if (step2Details) step2Details.style.display = 'block';
       if (stepMessageMode) stepMessageMode.style.display = 'none';
       // Set submission mode to checkin
@@ -467,5 +627,111 @@ function updateVisitorLastUpdated(isoString) {
   } else {
     timeLabel.textContent = `Updated ${diffMin}m ago`;
   }
+}
+
+// ============================================================================
+// INLINE ERROR DISPLAY HELPERS
+// ============================================================================
+
+/**
+ * Map server error keys to DOM input selectors based on mode
+ * @param {string} fieldKey - Server error key (e.g. 'fullname', 'phone')
+ * @param {boolean} isMessageMode - Whether the form is in message mode
+ * @returns {HTMLElement|null}
+ */
+function getFieldElement(fieldKey, isMessageMode) {
+  const fieldMap = {
+    fullname: isMessageMode
+      ? '.msg-fullname'
+      : '#step-2-details input[name="fullname"]',
+    faculty: isMessageMode
+      ? '.msg-faculty'
+      : '#step-2-details input[name="faculty"]',
+    phone: isMessageMode
+      ? '.msg-phone'
+      : '#step-2-details input[name="phone_number"]',
+    purpose: isMessageMode
+      ? '#visitor_message'
+      : '#step-2-details textarea[name="purpose"]',
+    visitor_type: '.visitor-type-group',
+    destination: '#destination'
+  };
+
+  const selector = fieldMap[fieldKey];
+  return selector ? document.querySelector(selector) : null;
+}
+
+/**
+ * Clear all existing inline error states from the form
+ * @param {HTMLFormElement} form
+ */
+function clearFormErrors(form) {
+  form.querySelectorAll('.field-error-msg').forEach(el => el.remove());
+  form.querySelectorAll('.input-error').forEach(el => el.classList.remove('input-error'));
+  const banner = form.querySelector('.form-error-banner');
+  if (banner) banner.remove();
+}
+
+/**
+ * Display inline errors for specific fields
+ * @param {Object} errors - { fieldKey: "Error message", ... }
+ * @param {boolean} isMessageMode
+ */
+function displayFieldErrors(errors, isMessageMode) {
+  let firstErrorEl = null;
+
+  for (const [key, message] of Object.entries(errors)) {
+    const el = getFieldElement(key, isMessageMode);
+    if (el) {
+      // Add red border
+      el.classList.add('input-error');
+
+      // Create error message element below the input
+      const errMsg = document.createElement('div');
+      errMsg.className = 'field-error-msg';
+      errMsg.textContent = message;
+
+      // Insert after the input (or inside for radio groups)
+      if (key === 'visitor_type') {
+        el.appendChild(errMsg);
+      } else {
+        el.parentNode.insertBefore(errMsg, el.nextSibling);
+      }
+
+      if (!firstErrorEl) firstErrorEl = el;
+    }
+  }
+
+  // Scroll to first error
+  if (firstErrorEl) {
+    firstErrorEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    if (firstErrorEl.focus) firstErrorEl.focus();
+  }
+}
+
+/**
+ * Show a generic error/success banner at the top of the form
+ * @param {HTMLFormElement} form
+ * @param {string} message
+ * @param {string} type - 'error' or 'success'
+ */
+function showFormBanner(form, message, type) {
+  // Remove existing banner
+  const existing = form.querySelector('.form-error-banner');
+  if (existing) existing.remove();
+
+  const banner = document.createElement('div');
+  banner.className = `form-error-banner form-banner-${type}`;
+  banner.textContent = message;
+
+  // Insert at the top of the form, after the h2
+  const h2 = form.querySelector('h2');
+  if (h2) {
+    h2.parentNode.insertBefore(banner, h2.nextSibling);
+  } else {
+    form.prepend(banner);
+  }
+
+  banner.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 

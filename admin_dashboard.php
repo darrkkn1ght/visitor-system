@@ -110,9 +110,6 @@ if ($role === 'destination_admin') {
   error_log("DEBUG: Destination admin restricted to destination_id = " . $destination_id);
 }
 
-if ($role === 'receptionist') {
-  $whereParts[] = "DATE(v.time_in) = CURDATE()"; // only today's visitors
-}
 
 if ($filter === 'checked_in') {
   $whereParts[] = "(v.time_out IS NULL OR v.time_out = '' OR v.time_out = '0000-00-00 00:00:00')";
@@ -235,11 +232,12 @@ $conn->close();
 
         <a href="events_calendar.php"><span class="menu-icon">📅</span> Events Calendar</a>
 
-        <?php if ($_SESSION['role'] === 'super_admin'): ?>
+        <?php if ($_SESSION['role'] === 'super_admin' || $_SESSION['role'] === 'superadmin'): ?>
           <a href="destinations.php"><span class="menu-icon">🏢</span> Destinations</a>
+          <a href="audit_logs_viewer.php"><span class="menu-icon">🔐</span> Audit Logs</a>
         <?php endif; ?>
 
-        <a href="backup_records.php"><span class="menu-icon">⬇</span> Export Data</a>
+        <a href="backup_records.php"><span class="menu-icon">💾</span> Backup & Restore</a>
 
         <a href="change_password.php"><span class="menu-icon">🔒</span> Change Password</a>
         <a href="logout.php" class="logout-btn">Logout</a>
@@ -292,9 +290,14 @@ $conn->close();
             </select>
           </div>
 
-          <input type="text" id="statusMessage" class="status-message-input-sm"
-            placeholder="Status message (e.g. In a meeting)"
-            value="<?= htmlspecialchars($profile['status_message'] ?? '') ?>">
+          <div class="status-message-row">
+            <input type="text" id="statusMessage" class="status-message-input-sm"
+              placeholder="Status message (e.g. In a meeting)"
+              value="<?= htmlspecialchars($profile['status_message'] ?? '') ?>">
+            <button type="button" id="btnUpdateStatusMsg" class="btn-update-status" title="Update status message">
+              Update
+            </button>
+          </div>
           <div id="statusUpdateMessage" class="status-update-message"></div>
         </div>
 
@@ -489,6 +492,7 @@ $conn->close();
     };
   </script>
   <script src="assets/js/realtime_client.js"></script>
+  <script src="notification_handler.js"></script>
   <script src="admin_dashboard.js"></script>
   <script src="simple_menu.js"></script>
 </body>

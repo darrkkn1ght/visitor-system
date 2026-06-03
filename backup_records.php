@@ -4,7 +4,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Export Visitor Records</title>
+  <title>Backup and Restore Panel</title>
   <link rel="stylesheet" href="style.css">
   <style>
     body {
@@ -98,28 +98,45 @@
     </div>
     <a href="admin_dashboard.php"><span class="menu-icon">☰</span> Dashboard</a>
     <a href="events_calendar.php"><span class="menu-icon">◷</span> Events Calendar</a>
-    <a href="backup_records.php"><span class="menu-icon">⬇</span> Export</a>
+    <a href="backup_records.php"><span class="menu-icon">💾</span> Backup & Restore</a>
     <a href="logout.php" class="logout-btn"><span class="menu-icon">⎋</span> Logout</a>
   </div>
 </div>
 
 <div class="container">
-  <h2>Export Visitor Records</h2>
-  <form action="export_data.php" method="POST">
-    <label for="start_date">Start Date:</label>
-    <input type="date" name="start_date" required>
+  <h2 style="margin-bottom: 5px;">Backup and Restore Data</h2>
+  <p style="text-align: center; color: #666; margin-bottom: 25px; font-size: 14px;">Securely backup and restore system records.</p>
+  
+  <div class="panel-section" style="background: #f9f9f9; padding: 20px; border-radius: 8px; border: 1px solid #eee;">
+    <h3 style="margin-top: 0; color: #333; font-size: 18px;">⬇ Export / Backup</h3>
+    <p style="color: #666; font-size: 13px; margin-bottom: 15px;">Download a backup of visitor records within a selected date range.</p>
+    <form action="export_data.php" method="POST">
+      <label for="start_date">Start Date:</label>
+      <input type="date" name="start_date" required>
 
-    <label for="end_date">End Date:</label>
-    <input type="date" name="end_date" required>
+      <label for="end_date">End Date:</label>
+      <input type="date" name="end_date" required>
 
-    <label for="format">Export Format:</label>
-    <select name="format" required>
-      <option value="csv">CSV</option>
-      <option value="json">JSON</option>
-    </select>
+      <label for="format">Export Format:</label>
+      <select name="format" required>
+        <option value="csv">CSV (Spreadsheet)</option>
+        <option value="json">JSON (System Format)</option>
+      </select>
 
-    <button type="submit">Export Data</button>
-  </form>
+      <button type="submit">Download Backup</button>
+    </form>
+  </div>
+
+  <div class="panel-section" style="background: #f9f9f9; padding: 20px; border-radius: 8px; border: 1px solid #eee; margin-top: 25px;">
+    <h3 style="margin-top: 0; color: #333; font-size: 18px;">⬆ Restore from Backup</h3>
+    <p style="color: #666; font-size: 13px; margin-bottom: 15px;">Restore visitor records from a previous backup file.</p>
+    <form action="#" method="POST" enctype="multipart/form-data" onsubmit="event.preventDefault(); alert('Restore functionality access is limited to server environment administrators for security reasons.');">
+      <label for="backup_file">Select Backup File (.csv or .json):</label>
+      <input type="file" name="backup_file" accept=".csv, .json" required style="padding: 8px; background: white;">
+
+      <button type="submit" style="background-color: #28a745; margin-top: 15px;">Restore Data</button>
+    </form>
+  </div>
 </div>
 
 <script src="simple_menu.js"></script>

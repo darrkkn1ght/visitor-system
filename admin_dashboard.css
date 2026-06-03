@@ -270,6 +270,41 @@
     color: #94a3b8;
 }
 
+.status-message-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.status-message-row .status-message-input-sm {
+    flex: 1;
+    min-width: 0;
+}
+
+.btn-update-status {
+    padding: 10px 16px;
+    background: linear-gradient(135deg, var(--ui-primary) 0%, var(--ui-accent) 100%);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-family: 'Poppins', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.btn-update-status:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(30, 58, 138, 0.3);
+}
+
+.btn-update-status:active {
+    transform: translateY(0);
+}
+
 .status-update-message {
     font-size: 12px;
     padding: 6px 10px;

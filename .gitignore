@@ -18,3 +18,13 @@ error_log
 # Temporary files
 *.tmp
 *.bak
+
+# Claude temp files
+tmpclaude-*
+
+# Null file
+nul
+
+# Node modules
+node_modules/
+realtime/node_modules/

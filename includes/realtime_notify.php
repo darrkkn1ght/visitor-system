@@ -12,7 +12,7 @@
  */
 function notify_realtime($event, $adminId, $destinationId, $payload = [])
 {
-    $url = 'http://127.0.0.1:3001/emit';
+    $url = 'http://127.0.0.1:3005/emit';
 
     $data = [
         'event' => $event,

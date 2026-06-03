@@ -171,16 +171,23 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Status Message Input Handler (Debounced auto-save)
-  let timeoutId;
-  if (statusMessageInput) {
-    statusMessageInput.addEventListener('input', function () {
-      clearTimeout(timeoutId);
-      timeoutId = setTimeout(() => {
+  // Status Message Update Button
+  const btnUpdateStatusMsg = document.getElementById('btnUpdateStatusMsg');
+  if (btnUpdateStatusMsg && statusMessageInput) {
+    btnUpdateStatusMsg.addEventListener('click', function () {
+      const status = statusDropdown.value;
+      const message = statusMessageInput.value;
+      updateStatus(status, message);
+    });
+
+    // Also allow Enter key to submit
+    statusMessageInput.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
         const status = statusDropdown.value;
         const message = this.value;
-        updateStatus(status, message, true); // true = silent update
-      }, 1000);
+        updateStatus(status, message);
+      }
     });
   }
 
@@ -426,23 +433,65 @@ function initializeRealtime() {
     // 2. Update List if visible
     const queueElement = document.getElementById('sidebarMessageQueue');
     if (queueElement) {
-      // Remove "empty" message if present
       const emptyMsg = queueElement.querySelector('.queue-empty');
       if (emptyMsg) emptyMsg.remove();
 
-      // Add new item to top
-      // Ideally we reuse createQueueItem from initializeMessageQueue scope
-      // But it is scoped inside. We can trigger a fetch, or make createQueueItem global.
-      // For simplicity/robustness, let's trigger a fetch
-      // fetchQueue(); // But fetchQueue is not global.
-      // Let's rely on the interval OR simple reload. 
-      // Better: Make fetchQueue globally accessible or trigger click.
-
-      // Simple fallback: just refresh the queue
-      // We can expose a global refresher
       if (window.refreshMessageQueue) {
         window.refreshMessageQueue();
       }
+    }
+
+    // 3. Also refresh the notification dropdown
+    if (window.notifInterval) {
+      // Trigger immediate notification fetch
+      const notifList = document.getElementById('notif-list');
+      if (notifList) {
+        fetch('fetch_notifications.php?limit=50')
+          .then(r => r.json())
+          .then(data => {
+            const badge = document.getElementById('notif-badge');
+            if (badge && data.count > 0) {
+              badge.textContent = data.count > 99 ? '99+' : data.count;
+              badge.style.display = 'block';
+            }
+          })
+          .catch(() => {});
+      }
+    }
+  });
+
+  // Handle Visitor Arrivals (normal check-ins)
+  RealtimeClient.on('visitor_arrival', (payload) => {
+    console.log('[Realtime] Visitor arrival:', payload);
+
+    // 1. Refresh notification dropdown immediately
+    const notifList = document.getElementById('notif-list');
+    if (notifList) {
+      fetch('fetch_notifications.php?limit=50')
+        .then(r => r.json())
+        .then(data => {
+          const badge = document.getElementById('notif-badge');
+          if (badge) {
+            if (data.count > 0) {
+              badge.textContent = data.count > 99 ? '99+' : data.count;
+              badge.style.display = 'block';
+            }
+          }
+          // Re-render notification list
+          if (notifList && data.notifications) {
+            notifList.innerHTML = '';
+            data.notifications.forEach(notif => {
+              const item = document.createElement('div');
+              item.className = 'notif-item unread';
+              item.innerHTML = `
+                ${notif.message}
+                <span class="time">${new Date(notif.created_at).toLocaleString()}</span>
+              `;
+              notifList.appendChild(item);
+            });
+          }
+        })
+        .catch(err => console.error('Error fetching notifications:', err));
     }
   });
 
